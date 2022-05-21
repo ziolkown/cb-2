@@ -26,19 +26,34 @@ impl Display for LinkText {
 /// Token enum for capturing of link URLs and Texts
 #[derive(Logos, Debug, PartialEq)]
 pub enum URLToken {
-    // TODO: Capture link definitions
+    #[regex("<p><a.*href=\"http://[^\"]\"[^>]>[^<]</a></p>", extract_link_info)]
+    #[regex("<p><a.*name=\"[^\"]\".*href=\"http://[^\"]\">[^<]</a.*></p>", extract_link_info)]
     Link((LinkUrl, LinkText)),
 
-    // TODO: Ignore all characters that do not belong to a link definition
+    #[regex("<!.*>")]
+    #[token("<html>")]
+    #[token("<head>")]
+    #[regex("<meta.*>")]
+    #[regex("<title>.*</title>")]
+    #[token("</head>>")]
+    #[token("<body>")]
+    #[regex("<h1><a.*</a></h1>")]
+    #[regex("<p>[^(<a)]</p>")]
+    #[regex("<p><a name=\"[^\">]\">.*</a.*></p>")]
+    #[token("</body>")]
+    #[token("</html>")]
     Ignored,
 
     // Catch any error
     #[error]
+    #[regex(r"[ \t\n\f]+", logos::skip)]
     Error,
 }
 
 /// Extracts the URL and text from a string that matched a Link token
 fn extract_link_info(lex: &mut Lexer<URLToken>) -> (LinkUrl, LinkText) {
-    // TODO: Implement extraction from link definition
-    todo!()
+    let slice = lex.slice();
+    // let LinkUrl: url = ;
+    // let LinkText: text = ;
+    (url, text)
 }
