@@ -2,15 +2,13 @@ use logos::Logos;
 
 #[derive(Logos, Debug, PartialEq)]
 pub enum C1Token {
-    // TODO: Define variants and their token/regex
+
+    /* key words */
     #[token("bool")]
     KwBoolean, 
 
-    #[token("return")]
-    KwReturn,
-
-    #[token("if")]
-    KwIf,
+    #[token("do")]
+    KwDo,
 
     #[token("else")]
     KwElse,
@@ -18,8 +16,70 @@ pub enum C1Token {
     #[token("float")]
     KwFloat,
 
+    #[token("for")]
+    KwFor,
+
+    #[token("if")]
+    KwIf,
+
+    #[token("int")]
+    KwInt,
+
+    #[token("printf")]
+    KwPrintf,
+
+    #[token("return")]
+    KwReturn,
+
+    #[token("void")]
+    KwVoid,
+
+    #[token("while")]
+    KwWhile,
+
+    /* Operators */
+    #[token("+")]
+    Plus,
+
+    #[token("-")]
+    Minus,
+
+    #[token("*")]
+    Asterisk,
+
+    #[token("/")]
+    Slash,
+
     #[token("=")]
     Assign,
+
+    #[token("==")]
+    Eq,
+
+    #[token("!=")]
+    Neq,
+
+    #[token("<")]
+    Lss,
+
+    #[token(">")]
+    Grt,
+
+    #[token("<=")]
+    Leq,
+
+    #[token(">=")]
+    Geq,
+
+    #[token("&&")]
+    And,
+
+    #[token("||")]
+    Or,
+
+    /* other token */
+    #[token(",")]
+    Comma,
 
     #[token(";")]
     Semicolon,
@@ -36,62 +96,31 @@ pub enum C1Token {
     #[token("}")]
     RBrace,
 
-    #[token(",")]
-    Comma,
-
-    #[token("||")]
-    Or,
-
-    #[token("==")]
-    Eq,
-
-    #[token("!=")]
-    Neq,
-
-    #[token("do")]
-    KwDo,
-
-    #[token("+")]
-    Plus,
-
-    #[token("&&")]
-    And,
-
-    #[token("*")]
-    Asterisk,
-    
-    #[token("void")]
-    KwVoid,
-
-    #[token("int")]
-    KwInt,
-
-    #[token("printf")]
-    KwPrintf,
-
-    #[token("while")]
-    KwWhile,
-
-    #[regex(r"[a-z][a-zA-Z_0-9]*")]
-    Id,
-
+    /* term variables */
     #[regex("[0-9]*")]
     ConstInt,
 
-    #[regex("\"[^\"]*\"")]
-    ConstString,
+    // #[regex(r"[0-9]*(\.|e|E)[0-9]*")]
+    // ConstFloat,
 
-    #[regex(r"[0-9]*(\.|e)[0-9]*")]
+    #[regex(r"((([0-9]*\.[0-9]+)([eE]([+-])?[0-9])?)|([0-9]+[eE]([+-])?[0-9]+))")]
     ConstFloat,
 
     #[regex("true|false")]
     ConstBoolean,
 
-    // Logos requires one token variant to handle errors,
-    // it can be named anything you wish.
+    #[regex("\"[^\"]*\"")]
+    ConstString,
+
+    #[regex(r"[a-z][a-zA-Z_0-9]*")]
+    Id,
+
+    //annotation over multiple lines
     #[regex(r"/\* [^\*/]*\*/", logos::skip)]
-    #[regex(r"[ \t\n\f]+", logos::skip)]
+    //annotation in one line
     #[regex(r"//[^\n]*", logos::skip)]
+    //other useless chars
+    #[regex(r"[ \t\n\f]+", logos::skip)]
     #[error]
     Error,
 }
