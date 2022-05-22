@@ -1,6 +1,6 @@
-use logos::{Lexer, Logos, Source};
+use logos::{Lexer, Logos};//, Source};
 use std::fmt::{Display, Formatter};
-use cb_2::lexer::url::Url::Url;
+use std::string::String;
 
 /// Tuple struct for link URLs
 #[derive(Debug, PartialEq)]
@@ -27,71 +27,54 @@ impl Display for LinkText {
 /// Token enum for capturing of link URLs and Texts
 #[derive(Logos, Debug, PartialEq)]
 pub enum URLToken {
-    #[regex("<p><a[ \n]*(name=\"[^\"]\"[ \n]*)?href=\"http://[^\"]\">[^<]</a[ \n]*></p>", extract_link_info)]
+    #[regex(r#"<p><a[ \n\t\fa-zA-Z0-9=">,äüö:]*http[:/\-\.() \n\t\fa-zA-Z0-9=">,äüö]*</a[ \n\f\t]*></p>"#, extract_link_info)]
     Link((LinkUrl, LinkText)),
-
-    #[regex("<!.*>")]
-    #[token("<html>")]
-    #[token("<head>")]
-    #[regex("<meta.*>")]
-    #[regex("<title>.*</title>")]
-    #[token("</head>>")]
-    #[token("<body>")]
-    #[regex("<h1><a.*</a></h1>")]
-    #[regex("<p>[^(<a)]</p>")]
-    #[regex("<p><a name=\"[^\">]\">.*</a.*></p>")]
-    #[token("</body>")]
-    #[token("</html>")]
-    Ignored,
 
     // Catch any error
     #[error]
     #[regex(r"[ \t\n\f]+", logos::skip)]
+    #[regex("<!DOCTYPE[^>]*>", logos::skip)]
+    #[token("<html>", logos::skip)]
+    #[token("<head>", logos::skip)]
+    #[regex("<meta[^>]*>", logos::skip)]
+    #[regex("<title>[^>]*>", logos::skip)]
+    #[token("</head>", logos::skip)]
+    #[token("<body>", logos::skip)]
+    #[regex("<h1><a[^>]>*[^<]*</a></h1>", logos::skip)]
+    #[regex("<p>[^<]*</p>", logos::skip)]
+    #[regex(r#"<p><a[ \n\t\fa-zA-Z0-9=">,äüö]*</a[ \n\f\t]*></p>"#, logos::skip)]
+    #[token("</body>", logos::skip)]
+    #[token("</html>", logos::skip)]
+    Error,
+}
+
+#[derive(Logos, Debug, PartialEq)]
+enum URLInfo {
+    #[regex("http[^\"]*")]//"://[^\"]*")]
+    Url,
+
+    #[error]
+    #[regex(r#"<p><a[ \n\t]*"#, logos::skip)]
+    #[regex(r#"[" ]*name="[a-zA-Z0-9 ]*"[ \n>]*"#, logos::skip)]
+    #[regex("href=\"", logos::skip)]
+    #[regex("\">", logos::skip)]
+    #[regex(r#"</a[ \n\t]*></p>"#, logos::skip)]
     Error,
 }
 
 /// Extracts the URL and text from a string that matched a Link token
 fn extract_link_info(lex: &mut Lexer<URLToken>) -> (LinkUrl, LinkText) {
-    let url = extract_url(lex);
-    let text = extract_text(lex);
-    (url, text)
-}
-
-pub enum Url {
-    #[regex("http://[^\"]*")]
-    Url(LinkUrl),
-
-    // #[regex(".*[^(http)]")]
-    // #[regex("\"[ ]*name=[^(</p>]*</p>")]
-    // Ignore,
-
-    #[error]
-    Error,
-}
-
-fn extract_url(lex: &mut Lexer<URLToken>) -> (LinkUrl) {
-    let mut lexer = Url::lexer(lex.slice());
-    let mut tokens = Vec::new();
+    let mut lexer = URLInfo::lexer(lex.slice());
+    let mut url = String::from("");
+    let mut text = String::from("");
     while let Some(val) = lexer.next() {
-        tokens.push(val);
+        let token = (val, lexer.slice());
+        if format!("{:?}", token.0) == "Url" {
+            url = String::from(token.1);
+        }
+        if format!("{:?}", token.0) == "Error" {
+            text.push_str(token.1);
+        }
     }
-    for val in tokens.ietr() {
-
-    }
-}
-
-pub enum text {
-    #[regex(">[^(</a)]*")]
-    Text(LinkText),
-
-    // #[regex()]
-    // Ignore,
-
-    #[error]
-    Error,
-}
-
-fn extract_text(lex: &mut Lexer<URLToken>) -> (LinkText) {
-    let mut lexer = text::lexer(lex.as_str());
-    let mut tokens = Vec::new();
+    return (LinkUrl(url), LinkText(text))
 }
