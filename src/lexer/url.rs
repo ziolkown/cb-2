@@ -50,7 +50,7 @@ pub enum URLToken {
 
 #[derive(Logos, Debug, PartialEq)]
 enum URLInfo {
-    #[regex("http[^\"]*")]//"://[^\"]*")]
+    #[regex("http[^\"]*")]
     Url,
 
     #[error]
